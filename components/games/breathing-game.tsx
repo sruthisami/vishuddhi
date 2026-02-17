@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wind, Check } from "lucide-react";
-// import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
 export function BreathingGame() {
@@ -122,9 +122,9 @@ export function BreathingGame() {
         </motion.div>
       </AnimatePresence>
 
-      {/* <div className="w-64">
+      <div className="w-64">
         <Progress value={progress} className="h-2" />
-      </div> */}
+      </div>
 
       <div className="space-y-2 text-center">
         <div className="text-sm text-muted-foreground">

@@ -1,5 +1,8 @@
 "use client";
-
+import { BreathingGame } from "./breathing-game";
+import { ZenGarden } from "./zen-garden";
+import { ForestGame } from "./forest-game";
+import { OceanWaves } from "./ocean-waves";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, Flower2, Wind, TreePine, Waves, Music2 } from "lucide-react";
@@ -84,13 +87,13 @@ export const AnxietyGames = ({ onGamePlayed }: AnxietyGamesProps) => {
   const renderGame = () => {
     switch (selectedGame) {
       case "breathing":
-        //return <BreathingGame />;
+        return <BreathingGame />;
       case "garden":
-        //return <ZenGarden />;
+        return <ZenGarden />;
       case "forest":
-        //return <ForestGame />;
+        return <ForestGame />;
       case "waves":
-        //return <OceanWaves />;
+        return <OceanWaves />;
       default:
         return null;
     }
