@@ -10,10 +10,12 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { AnxietyGames } from "@/components/games/anxiety-games"
+import { MoodForm } from "@/components/mood/mood-form"
 
 export default function Dashboard() {
     const [currentTime, setCurrentTime] = useState(new Date())
     const [showMoodModal, setShowMoodModal] = useState(false);
+    const [isSavingMood, setIsSavingMood] = useState(false);
     const wellnessStats = [
         {
             title: "Mood Score",
@@ -57,6 +59,17 @@ export default function Dashboard() {
     const hour = currentTime.getHours()
     const greeting =
         hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
+    
+    const handleMoodSubmit = async(data:{moodScore: number }) => {
+        setIsSavingMood(true);
+        try {
+            setShowMoodModal(false);
+        } catch(error){
+            console.error("Error saving mood:", error);
+        } finally {
+            setIsSavingMood(false);
+        }
+    }
 
     return (
         <div className="min-h-screen bg-background p-8">
@@ -104,7 +117,7 @@ export default function Dashboard() {
                                         "hover:from-primary hover:to-primary/90",
                                         "transition-all duration-200 hover:shadow-md"
                                     )}
-                                //onClick={() => setShowMoodModal(true)}
+                                onClick={() => setShowMoodModal(true)}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
@@ -129,7 +142,7 @@ export default function Dashboard() {
                                             "justify-center items-center text-center",
                                             "transition-all duration-200 group-hover:translate-y-[-2px]"
                                         )}
-                                    // onClick={() => setShowMoodModal(true)}
+                                    onClick={() => setShowMoodModal(true)}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center mb-2">
                                             <Heart className="w-5 h-5 text-muted-foreground" />
@@ -233,7 +246,7 @@ export default function Dashboard() {
                             Move the slider to track your current mood
                         </DialogDescription>
                     </DialogHeader>
-                   
+                   <MoodForm onSubmit={handleMoodSubmit} isLoading={isSavingMood} />
                 </DialogContent>
             </Dialog>
         </div>
