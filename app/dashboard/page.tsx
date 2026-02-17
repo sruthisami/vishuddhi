@@ -9,6 +9,7 @@ import { Sparkles, MessageSquare, ArrowRight, Heart, BrainCircuit, Activity, Tro
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { AnxietyGames } from "@/components/games/anxiety-games"
 
 export default function Dashboard() {
     const [currentTime, setCurrentTime] = useState(new Date())
@@ -165,6 +166,7 @@ export default function Dashboard() {
                             </div>
                         </CardContent>
                     </Card>
+                    </div>
                     {/* Today's Overview Card */}
                     <Card className="border-primary/10">
                         <CardHeader>
@@ -216,11 +218,10 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left side - Spans 2 columns */}
                         <div className="lg:col-span-3 space-y-6">
-                            {/* <AnxietyGames 
-                            onGamePlayed={handleGamePlayed} 
-                            /> */}
-                        </div>
-                    </div>
+                            <AnxietyGames 
+                            
+                            />
+                        </div> 
                 </div>
             </Container>
 
@@ -232,7 +233,7 @@ export default function Dashboard() {
                             Move the slider to track your current mood
                         </DialogDescription>
                     </DialogHeader>
-                    <MoodForm onSuccess={() => setShowMoodModal(false)} />
+                   
                 </DialogContent>
             </Dialog>
         </div>
