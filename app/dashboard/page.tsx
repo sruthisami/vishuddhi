@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { AnxietyGames } from "@/components/games/anxiety-games"
 import { MoodForm } from "@/components/mood/mood-form"
+import {ActivityLogger} from "@/components/activities/activity-logger"
 
 export default function Dashboard() {
     const [currentTime, setCurrentTime] = useState(new Date())
     const [showMoodModal, setShowMoodModal] = useState(false);
     const [isSavingMood, setIsSavingMood] = useState(false);
+    const [showActivityLogger, setShowActivityLogger] = useState(false);
     const wellnessStats = [
         {
             title: "Mood Score",
@@ -69,6 +71,9 @@ export default function Dashboard() {
         } finally {
             setIsSavingMood(false);
         }
+    }
+    const handleAICheckIn = () => {
+        setShowActivityLogger(true);
     }
 
     return (
@@ -162,7 +167,7 @@ export default function Dashboard() {
                                             "justify-center items-center text-center",
                                             "transition-all duration-200 group-hover:translate-y-[-2px]"
                                         )}
-                                    //onClick={handleAICheckIn}
+                                    onClick={handleAICheckIn}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
                                             <BrainCircuit className="w-5 h-5 text-muted-foreground" />
@@ -249,6 +254,10 @@ export default function Dashboard() {
                    <MoodForm onSubmit={handleMoodSubmit} isLoading={isSavingMood} />
                 </DialogContent>
             </Dialog>
+            <ActivityLogger 
+              open={showActivityLogger}
+              onOpenChange={setShowActivityLogger}o
+            />
         </div>
     )
 }
