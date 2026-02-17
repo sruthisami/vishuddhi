@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AnxietyGames } from "@/components/games/anxiety-games"
 import { MoodForm } from "@/components/mood/mood-form"
 import {ActivityLogger} from "@/components/activities/activity-logger"
+import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
     const [currentTime, setCurrentTime] = useState(new Date())
@@ -53,6 +54,8 @@ export default function Dashboard() {
         },
     ];
 
+    const router = useRouter();
+
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000)
         return () => clearInterval(timer)
@@ -61,6 +64,16 @@ export default function Dashboard() {
     const hour = currentTime.getHours()
     const greeting =
         hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
+    
+    // // Load activities on mount
+    // useEffect(() => {
+    //     loadActivities();
+    // }, [loadActivities]);
+
+    // Add these action handlers
+    const handleStartTherapy = () => {
+        router.push("/therapy/new");
+    };
     
     const handleMoodSubmit = async(data:{moodScore: number }) => {
         setIsSavingMood(true);
@@ -122,7 +135,7 @@ export default function Dashboard() {
                                         "hover:from-primary hover:to-primary/90",
                                         "transition-all duration-200 hover:shadow-md"
                                     )}
-                                onClick={() => setShowMoodModal(true)}
+                                onClick={handleStartTherapy}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
