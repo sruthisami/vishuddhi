@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "baseUrl": "src",
+    "outDir": "dist",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "strict": true
+  },
+  "include": ["src/**/*"]
+}
