@@ -1,4 +1,4 @@
-"use-client"
+"use client"
 import {SessionProvider as NextauthSessionProvider} from 'next-auth/react' 
 import {SessionProvider as CustomSessionProvider} from '@/lib/contexts/session-context'
 import { ThemeProvider } from 'next-themes'
