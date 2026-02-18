@@ -34,6 +34,13 @@ export const createMood = async (
       timestamp: mood.timestamp,
     });
 
+    sendMoodUpdateEvent({
+      userId: userId.toString(),
+      mood: score,
+      notes: note,
+    }).catch((err) =>
+      logger.error("Inngest mood event failed", err)
+    );
 
     res.status(201).json({
       success: true,
