@@ -22,7 +22,12 @@ dotenv.config();
 const app = express();
 
 // ================= MIDDLEWARE =================
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
