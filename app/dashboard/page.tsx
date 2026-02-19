@@ -13,6 +13,8 @@ import { AnxietyGames } from "@/components/games/anxiety-games"
 import { MoodForm } from "@/components/mood/mood-form"
 import {ActivityLogger} from "@/components/activities/activity-logger"
 import { useRouter } from "next/navigation"
+import { useSession } from "@/lib/contexts/session-context"
+
 
 export default function Dashboard() {
     const [currentTime, setCurrentTime] = useState(new Date())
@@ -55,6 +57,8 @@ export default function Dashboard() {
     ];
 
     const router = useRouter();
+    const { user } = useSession();
+
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000)
@@ -97,9 +101,11 @@ export default function Dashboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="space-y-2"
+                    className="flex flex-col gap-2"
                 >
-                    <h1 className="text-3xl font-bold">{greeting}</h1>
+                    <h1 className="text-3xl font-bold">
+                        Welcome back, {user?.name}
+                    </h1>
                     <p className="text-muted-foreground text-sm">
                         {currentTime.toLocaleDateString("en-us", {
                             weekday: "long",
@@ -268,9 +274,10 @@ export default function Dashboard() {
                 </DialogContent>
             </Dialog>
             <ActivityLogger 
-              open={showActivityLogger}
-              onOpenChange={setShowActivityLogger}o
-            />
+                open={showActivityLogger}
+                onOpenChange={setShowActivityLogger} onActivityLogged={function (): void {
+                    throw new Error("Function not implemented.")
+                } }            />
         </div>
     )
 }

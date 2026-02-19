@@ -7,11 +7,37 @@ import { Container } from "@/components/ui/container";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Lock, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { loginUser } from "@/lib/api/auth";
+import {useSession} from "@/lib/contexts/session-context"
 
 export default function LoginPage() {
+  const router = useRouter();
+    const {checkSession} = useSession();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);  
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+        try {
+          const response = await loginUser(email, password);
+          localStorage.setItem("token", response.token);
+          await checkSession();
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          router.push("/dashboard");
+        } catch(err){
+          setError(
+            err instanceof Error? err.message : "Invalid email or password, please try again."
+          )
+        } finally {
+          setLoading(false);
+        }
+    };
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/30">
 
@@ -27,7 +53,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-3">
               <div>
                 <label
@@ -70,13 +96,18 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
-
+            {error && (
+              <p className="text-red-500 text-base text-center font-medium">
+                {error}
+              </p>
+            )}
             <Button
               className="w-full py-2 text-base rounded-xl font-bold bg-gradient-to-r from-primary to-primary/80 shadow-md hover:from-primary/80 hover:to-primary"
               size="lg"
-              type="button"
+              type="submit"
+              disabled={loading}
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 

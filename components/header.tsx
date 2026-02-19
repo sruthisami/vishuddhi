@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AudioWaveform, X, Menu } from "lucide-react"
+import { AudioWaveform, X, Menu, MessageCircle, LogOut } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { SignInButton } from "./auth/sign-in-button"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useSession } from "@/lib/contexts/session-context"
 
 function Header() {
+    const { isAuthenticated,logout, user } = useSession()
     const navItems = [{ href: "/features", label: "Features" }, { href: "/about", label: "Vishuddhi" }]
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
@@ -45,7 +47,30 @@ function Header() {
                         </nav>
                         <div className="flex items-center gap-3">
                             <ThemeToggle />
-                            <SignInButton />
+                            {isAuthenticated ? (
+                <>
+                  <Button
+                    asChild
+                    className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary"
+                  >
+                    <Link href="/dashboard">
+                      <MessageCircle className="w-4 h-4 mr-1" />
+                      Start Chat
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={logout}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <SignInButton />
+              )}
+
                             <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">{isMenuOpen ? (<X className="h-5 w-5" />) : (<Menu className="h-5 w-5" />)}</Button>
                         </div>
                     </div>
