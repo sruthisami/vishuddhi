@@ -3,54 +3,37 @@ import { Mood } from "../models/Mood";
 import { logger } from "../utils/logger";
 import { sendMoodUpdateEvent } from "../utils/inngestEvents";
 
-// Create a new mood entry
 export const createMood = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-   
-    const { score, note, context, activities } = req.body || {};
+    const { score, note } = req.body;
     const userId = req.user?._id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "User not authenticated",
-      });
-    }
-
- 
-    if (score === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "Mood score is required. Send JSON body.",
-      });
+      return res.status(401).json({ message: "User not authenticated" });
     }
 
 
-    const mood = await Mood.create({
+
+    const mood = new Mood({
       userId,
       score,
       note,
-      context,
-      activities,
       timestamp: new Date(),
     });
-
+    await mood.save();
     logger.info(`Mood entry created for user ${userId}`);
 
+    await sendMoodUpdateEvent({
+      userId,
+      score,
+      note,
+      timestamp: mood.timestamp,
+    });
 
-    sendMoodUpdateEvent({
-      userId: userId.toString(),
-      mood: score,
-      notes: note,
-      context,
-      activities,
-    }).catch((err) =>
-      logger.error("Inngest mood event failed", err)
-    );
 
     res.status(201).json({
       success: true,

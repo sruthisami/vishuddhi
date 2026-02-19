@@ -30,20 +30,21 @@ export const sendMoodUpdateEvent = async (moodData: any) => {
       name: "mood/updated",
       data: {
         userId: moodData.userId,
-        mood: moodData.mood,
+        score: moodData.score,
+        note: moodData.note,
         timestamp: new Date().toISOString(),
-        context: moodData.context,
-        activities: moodData.activities,
-        notes: moodData.notes,
-        ...moodData,
+        ...moodData, // allow flexibility like activity
       },
     });
+
     logger.info("Mood update event sent successfully");
   } catch (error) {
     logger.error("Failed to send mood update event:", error);
     throw error;
   }
 };
+
+
 
 export const sendActivityCompletionEvent = async (activityData: any) => {
   try {
