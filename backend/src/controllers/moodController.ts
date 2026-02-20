@@ -27,20 +27,20 @@ export const createMood = async (
     await mood.save();
     logger.info(`Mood entry created for user ${userId}`);
 
-    await sendMoodUpdateEvent({
-      userId,
-      score,
-      note,
-      timestamp: mood.timestamp,
-    });
+    // await sendMoodUpdateEvent({
+    //   userId,
+    //   score,
+    //   note,
+    //   timestamp: mood.timestamp,
+    // });
 
-    sendMoodUpdateEvent({
-      userId: userId.toString(),
-      mood: score,
-      notes: note,
-    }).catch((err) =>
-      logger.error("Inngest mood event failed", err)
-    );
+    // sendMoodUpdateEvent({
+    //   userId: userId.toString(),
+    //   mood: score,
+    //   notes: note,
+    // }).catch((err) =>
+    //   logger.error("Inngest mood event failed", err)
+    // );
 
     res.status(201).json({
       success: true,

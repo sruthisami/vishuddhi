@@ -33,16 +33,16 @@ export const logActivity = async (
     logger.info(`Activity logged for user ${userId}`);
 
     // Send activity completion event to Inngest
-    await sendActivityCompletionEvent({
-      userId,
-      id: activity._id,
-      type,
-      name,
-      duration,
-      difficulty,
-      feedback,
-      timestamp: activity.timestamp,
-    });
+    // await sendActivityCompletionEvent({
+    //   userId,
+    //   id: activity._id,
+    //   type,
+    //   name,
+    //   duration,
+    //   difficulty,
+    //   feedback,
+    //   timestamp: activity.timestamp,
+    // });
 
     res.status(201).json({
       success: true,
