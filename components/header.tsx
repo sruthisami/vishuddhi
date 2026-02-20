@@ -1,5 +1,9 @@
 "use client"
+import { Fraunces } from "next/font/google";
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+});
 import { useEffect, useState } from "react"
 import { AudioWaveform, X, Menu, MessageCircle, LogOut } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
@@ -41,6 +45,13 @@ function Header() {
                     </Link>
                     <Link href="/dashboard/period">
   <Button variant="ghost">Period Tracker</Button>
+  </Link>
+{/* In your Navbar mapping or list */}
+<Link 
+  href="/dashboard/journal" 
+  className={`${fraunces.className} text-sm font-medium transition-colors hover:text-primary`}
+>
+  Journal
 </Link>
                     <div className="flex items-center gap-4">
                         <nav className="hidden md:flex items-center space-x-1" >
