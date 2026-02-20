@@ -58,30 +58,16 @@ export default function Page() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-3xl mx-auto space-y-6">
         
-        {/* 1. Aura Insight - Adjusted Margin Top */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 md:mt-4" 
-        >
-          <Card className="bg-primary/5 border-primary/20 backdrop-blur-sm p-4 flex gap-3 items-center">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <div>
-              <p className="text-[10px] font-bold uppercase text-primary tracking-tight">Aura Insight</p>
-              <p className="text-sm text-muted-foreground">{auraInsight}</p>
-            </div>
-          </Card>
-        </motion.div>
 
         {/* 2. Main Tracking Card */}
-        <Card className="bg-card border-border p-8 space-y-8 shadow-sm">
+        <Card className="bg-card border-border p-8 mt-16 space-y-8 shadow-sm">
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-              <Heart className="w-10 h-10 text-rose" />
+            <div className="w-20 h-20  bg-rose-500/10 rounded-full flex items-center justify-center">
+              <Heart className="w-10 h-10 text-rose-500" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight">Tracking begins</h2>
-              <Badge variant="secondary" className="font-medium">Tracking Active</Badge>
+              <h2 className="text-2xl font-bold tracking-tight">Track Your Cycle</h2>
+              <Badge variant="secondary" className="font-medium">Active</Badge>
             </div>
           </div>
 
@@ -214,6 +200,21 @@ export default function Page() {
             </div>
           </div>
         </Card>
+
+         {/* 1. Aura Insight - Adjusted Margin Top */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-2 md:mt-4" 
+        >
+          <Card className="bg-primary/5 border-primary/20 backdrop-blur-sm p-4 flex gap-3 items-center">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <div>
+              <p className="text-[10px] font-bold uppercase text-primary tracking-tight">Aura Insight</p>
+              <p className="text-sm text-muted-foreground">{auraInsight}</p>
+            </div>
+          </Card>
+        </motion.div>
 
         {/* 5. Cycle History */}
         <Card className="p-8 text-center border-dashed border-2">
