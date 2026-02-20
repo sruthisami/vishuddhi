@@ -3,7 +3,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3M
 Content-Type: application/json
 
 {
-  "text": "I keep telling myself not to think about messing up the interview, but the more I try to ignore it, the more it comes back."
+  "text": "I enjoyed me time with my friends today. We went to the park and had a picnic. The weather was perfect and we had so much fun!"
 }
 
 ### Get all journals
