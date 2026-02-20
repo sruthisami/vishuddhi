@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:3001
+
+
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "testuser123@mail.com",
+  "password": "123456"
+}
+
+### Login and store token
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser123@mail.com",
+  "password": "123456"
+}
+
+
+
+### Create Mood
+POST {{baseUrl}}/api/mood
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+
+{
+  "score": 80,
+  "note": "Auto token test"
+}
+

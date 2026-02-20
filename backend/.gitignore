@@ -2,4 +2,3 @@ node_modules/
 combined.log
 error.log
 .env
-reqs/
