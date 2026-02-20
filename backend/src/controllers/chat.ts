@@ -118,28 +118,28 @@ export const sendMessage = async (req: Request, res: Response) => {
     // ===============================
     // Inngest Event
     // ===============================
-    const event: InngestEvent = {
-      name: "therapy/session.message",
-      data: {
-        message,
-        history: session.messages,
-        memory: {
-          userProfile: {
-            emotionalState: [],
-            riskLevel: 0,
-            preferences: {},
-          },
-          sessionContext: {
-            conversationThemes: [],
-            currentTechnique: null,
-          },
-        },
-        goals: [],
-        systemPrompt: `You are an empathetic AI therapist. Provide supportive, safe, and compassionate responses.`,
-      },
-    };
+    // const event: InngestEvent = {
+    //   name: "therapy/session.message",
+    //   data: {
+    //     message,
+    //     history: session.messages,
+    //     memory: {
+    //       userProfile: {
+    //         emotionalState: [],
+    //         riskLevel: 0,
+    //         preferences: {},
+    //       },
+    //       sessionContext: {
+    //         conversationThemes: [],
+    //         currentTechnique: null,
+    //       },
+    //     },
+    //     goals: [],
+    //     systemPrompt: `You are an empathetic AI therapist. Provide supportive, safe, and compassionate responses.`,
+    //   },
+    // };
 
-    await inngest.send(event);
+    // await inngest.send(event);
 
     // ===============================
     // STEP 1: ANALYSIS
@@ -157,7 +157,7 @@ Message: ${message}
 }`;
 
     const analysisResult = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: analysisPrompt,
     });
 
@@ -174,7 +174,7 @@ Analysis: ${JSON.stringify(analysis)}
 Respond with warmth, validation, and gentle guidance.`;
 
     const responseResult = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: responsePrompt,
     });
 

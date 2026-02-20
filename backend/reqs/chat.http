@@ -1,5 +1,18 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+
+###
 POST http://localhost:3001/chat/sessions
 Content-Type: application/json
-Authorization: Bearer YOUR_JWT_TOKEN_HERE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
 
 {}
+
+###send message
+
+POST http://localhost:3001/chat/sessions/5e1a4f2f-f169-4ac6-86a1-0922ffe4b868/messages
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+
+{
+    "message": "Hello, how are you?"
+}
