@@ -42,7 +42,7 @@ export interface ApiResponse {
 
 const API_BASE =
   process.env.BACKEND_API_URL ||
-  "localhost:3001";
+  "http://localhost:3001";
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -125,15 +125,10 @@ export const getChatHistory = async (
     }
 
     const data = await response.json();
-    console.log("Received chat history:", data);
 
-    if (!Array.isArray(data)) {
-      console.error("Invalid chat history format:", data);
-      throw new Error("Invalid chat history format"); 
-    }
+    const messages = data.messages || data;
 
-    // Ensure each message has the correct format
-    return data.map((msg: any) => ({
+    return messages.map((msg: any) => ({
       role: msg.role,
       content: msg.content,
       timestamp: new Date(msg.timestamp),
@@ -147,7 +142,7 @@ export const getChatHistory = async (
 
 export const getAllChatSessions = async (): Promise<ChatSession[]> => {
   try {
-   
+
     const response = await fetch(`${API_BASE}/chat/sessions`, {
       headers: getAuthHeaders(),
     });
@@ -165,7 +160,7 @@ export const getAllChatSessions = async (): Promise<ChatSession[]> => {
       // Ensure dates are valid
       const createdAt = new Date(session.createdAt || Date.now());
       const updatedAt = new Date(session.updatedAt || Date.now());
-      
+
 
       return {
         ...session,

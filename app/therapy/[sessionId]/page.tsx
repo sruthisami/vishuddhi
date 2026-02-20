@@ -6,7 +6,7 @@ import { Send, Bot, User, Loader2, Sparkles, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import ReactMarkdown from "react-markdown"
-import {useParams, useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import {
   createChatSession,
   sendChatMessage,
@@ -15,8 +15,8 @@ import {
   getAllChatSessions,
   ChatSession,
 } from "@/lib/api/chat"
-import {formatDistanceToNow} from "date-fns"
-import {ScrollArea} from "@/components/ui/scroll-area"
+import { formatDistanceToNow } from "date-fns"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 
 
@@ -43,12 +43,12 @@ export default function TherapyPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isChatPaused] = useState(false)
   const [sessions, setSessions] = useState<any[]>([])
-   const [sessionId, setSessionId] = useState<string | null>(
+  const [sessionId, setSessionId] = useState<string | null>(
     params.sessionId as string
   );
 
-  const handleNewSession = async()=>{
-    try{
+  const handleNewSession = async () => {
+    try {
       setIsLoading(true);
       const newSessionId = await createChatSession()
 
@@ -62,10 +62,10 @@ export default function TherapyPage() {
       setSessionId(newSessionId);
       setMessages([]);
 
-      window.history.pushState({},"",`/therapy/${newSessionId}`)
+      window.history.pushState({}, "", `/therapy/${newSessionId}`)
       setIsLoading(false)
-    } catch(error){
-      console.error("Failed to create new session:",error)
+    } catch (error) {
+      console.error("Failed to create new session:", error)
       setIsLoading(false)
     }
   }
@@ -119,7 +119,7 @@ export default function TherapyPage() {
   }, [sessionId]);
 
   useEffect(() => {
-    const loadSessions = async() => {
+    const loadSessions = async () => {
       try {
         const allSessions = await getAllChatSessions()
         setSessions(allSessions)
@@ -128,9 +128,9 @@ export default function TherapyPage() {
       }
     }
     loadSessions()
-  },[messages])
+  }, [messages])
 
-    useEffect(() => {
+  useEffect(() => {
     setMounted(true)
   }, [])
 
@@ -150,7 +150,7 @@ export default function TherapyPage() {
     }
   }, [messages, isTyping]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const currentMessage = message.trim();
 
@@ -167,7 +167,7 @@ export default function TherapyPage() {
     setMessage("");
     setIsTyping(true);
 
-     try {
+    try {
       // Add user message
       const userMessage: ChatMessage = {
         role: "user",
@@ -177,7 +177,7 @@ export default function TherapyPage() {
       setMessages((prev) => [...prev, userMessage]);
       const response = await sendChatMessage(sessionId, currentMessage)
 
-        const aiResponse =
+      const aiResponse =
         typeof response === "string" ? JSON.parse(response) : response;
       console.log("Parsed AI response:", aiResponse);
 
@@ -203,11 +203,11 @@ export default function TherapyPage() {
             riskLevel: 0,
           },
         },
-      }; 
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
       setIsTyping(false);
       scrollToBottom();
-     } catch (error) {
+    } catch (error) {
       console.error("Error in chat:", error);
       setMessages((prev) => [
         ...prev,
@@ -222,7 +222,7 @@ export default function TherapyPage() {
     }
   };
 
-   useEffect(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 
@@ -234,7 +234,7 @@ export default function TherapyPage() {
     );
   }
 
-    const handleSessionSelect = async (selectedSessionId: string) => {
+  const handleSessionSelect = async (selectedSessionId: string) => {
     if (selectedSessionId === sessionId) return;
 
     try {
@@ -260,75 +260,75 @@ export default function TherapyPage() {
     <div className="relative max-w-7xl mx-auto px-4">
       <div className="flex h-[calc(100vh-4rem)] mt-20 gap-6">
 
-<div className="w-80 flex flex-col border-r bg-muted/30">
-  <div className="p-4 border-b">
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold">Chat Sessions</h2>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleNewSession}
-        className="hover:bg-primary/10"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        ) : (
-          <MessageSquare className="w-5 h-5" />
-        )}
-        New Session
-      </Button>
-    </div>
-  </div>
+        <div className="w-80 flex flex-col border-r bg-muted/30">
+          <div className="p-4 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Chat Sessions</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNewSession}
+                className="hover:bg-primary/10"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <MessageSquare className="w-5 h-5" />
+                )}
+                New Session
+              </Button>
+            </div>
+          </div>
 
-  <ScrollArea className="flex-1 p-4">
-    <div className="space-y-4">
-      {sessions.map((session) => (
-        <div
-          key={session.sessionId}
-          className={cn(
-            "p-3 rounded-lg text-sm cursor-pointer hover:bg-primary/5 transition-colors",
-            session.sessionId === sessionId
-              ? "bg-primary/10 text-primary"
-              : "bg-secondary/10"
-          )}
-          onClick={() => handleSessionSelect(session.sessionId)}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <MessageSquare className="w-4 h-4" />
-            <span className="font-medium">
-              {session.messages[0]?.content.slice(0, 30) || "New Chat"}
-            </span>
-          </div>
-          <p className="line-clamp-2 text-muted-foreground">
-            {session.messages[session.messages.length - 1]?.content ||
-              "No messages yet"}
-          </p>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-muted-foreground">
-              {session.messages.length} messages
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {(() => {
-                try {
-                  const date = new Date(session.updatedAt);
-                  if (isNaN(date.getTime())) {
-                    return "Just now";
-                  }
-                  return formatDistanceToNow(date, {
-                    addSuffix: true,
-                  });
-                } catch (error) {
-                  return "Just now";
-                }
-              })()}
-            </span>
-          </div>
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {sessions.map((session) => (
+                <div
+                  key={session.sessionId}
+                  className={cn(
+                    "p-3 rounded-lg text-sm cursor-pointer hover:bg-primary/5 transition-colors",
+                    session.sessionId === sessionId
+                      ? "bg-primary/10 text-primary"
+                      : "bg-secondary/10"
+                  )}
+                  onClick={() => handleSessionSelect(session.sessionId)}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="font-medium">
+                      {session.messages[0]?.content.slice(0, 30) || "New Chat"}
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-muted-foreground">
+                    {session.messages[session.messages.length - 1]?.content ||
+                      "No messages yet"}
+                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {session.messages.length} messages
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {(() => {
+                        try {
+                          const date = new Date(session.updatedAt);
+                          if (isNaN(date.getTime())) {
+                            return "Just now";
+                          }
+                          return formatDistanceToNow(date, {
+                            addSuffix: true,
+                          });
+                        } catch (error) {
+                          return "Just now";
+                        }
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
-      ))}
-    </div>
-  </ScrollArea>
-</div>
 
         <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-background rounded-lg border">
 
@@ -461,8 +461,7 @@ export default function TherapyPage() {
           {/* Input Area */}
           <div className="border-t bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 p-4">
             <form
-              action=""
-              onSubmit={() => {}}
+              onSubmit={handleSubmit}
               className="max-w-3xl mx-auto flex gap-4 items-end relative"
             >
               <div className="flex-1 relative group">
@@ -481,7 +480,7 @@ export default function TherapyPage() {
                     "transition-all duration-200",
                     "placeholder:text-muted-foreground/70",
                     (isTyping || isChatPaused) &&
-                      "opacity-50 cursor-not-allowed"
+                    "opacity-50 cursor-not-allowed"
                   )}
                   rows={1}
                   disabled={isTyping || isChatPaused}
@@ -501,7 +500,7 @@ export default function TherapyPage() {
                     "bg-primary hover:bg-primary/90",
                     "shadow-sm shadow-primary/20",
                     (isTyping || isChatPaused || !message.trim()) &&
-                      "opacity-50 cursor-not-allowed",
+                    "opacity-50 cursor-not-allowed",
                     "group-hover:scale-105 group-focus-within:scale-105"
                   )}
                   disabled={
