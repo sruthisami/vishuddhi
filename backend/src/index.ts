@@ -5,6 +5,7 @@ import { functions as inngestFunctions } from "./inngest/functions";
 import { logger } from "./utils/logger";
 import { connectDB } from "./utils/db";
 
+
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
@@ -16,6 +17,8 @@ import chatRouter from "./routes/chat";
 import moodRouter from "./routes/mood";
 import activityRouter from "./routes/activity";
 import periodRouter from "./routes/period"; 
+import journalRouter from "./routes/journal";
+
 
 dotenv.config();
 
@@ -38,6 +41,7 @@ app.use("/chat", chatRouter);
 app.use("/api/mood", moodRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/period", periodRouter); 
+app.use("/api/journals", journalRouter);
 
 // ================= INNGEST =================
 app.use(

@@ -1,0 +1,15 @@
+POST http://localhost:3001/api/journals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+Content-Type: application/json
+
+{
+  "text": "I keep telling myself not to think about messing up the interview, but the more I try to ignore it, the more it comes back."
+}
+
+### Get all journals
+GET http://localhost:3001/api/journals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+
+### Get a specific journal by ID
+GET http://localhost:3001/api/journals/:id
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
