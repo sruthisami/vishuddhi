@@ -1,0 +1,5 @@
+POST http://localhost:3001/chat/sessions
+Content-Type: application/json
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+{}
