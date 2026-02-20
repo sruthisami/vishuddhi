@@ -7,7 +7,7 @@ import {
   getPrediction,
 } from "@/lib/api/period";
 import { useState, useEffect } from "react"
-import { Fraunces } from "next/font/google"; // Added for font consistency
+import { Fraunces } from "next/font/google";
 import {
   Heart,
   Droplets,
@@ -19,7 +19,9 @@ import {
   Waves,
   Circle,
   Droplet,
-  BookOpen
+  BookOpen,
+  History,
+  Flag
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -27,6 +29,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { useSession } from "@/lib/contexts/session-context"
 import { useRouter } from "next/navigation"
+import { Separator } from "@/components/ui/separator";
 
 const fraunces = Fraunces({ subsets: ["latin"] });
 
@@ -126,24 +129,31 @@ export default function Page() {
     }
     return days;
   }
+
+  const getOrdinal = (day: number) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1: return "st";
+      case 2: return "nd";
+      case 3: return "rd";
+      default: return "th";
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background p-4 md:p-8 pt-24">
       <div className="max-w-3xl mx-auto space-y-8">
         
-        {/* Page Title - Matching Resources Header style */}
+        {/* Page Title */}
         <div className="text-center space-y-2 mb-4 mt-16">
-          <h1 className={`${fraunces.className} text-4xl font-bold tracking-tight`}>
+          <h1 className={`${fraunces.className} text-4xl font-bold tracking-tight text-foreground`}>
             Cycle Tracker
           </h1>
           <p className="text-muted-foreground italic">Sync with your natural rhythm.</p>
         </div>
 
-        {/* 1. Aura Insight - Matching "AI Analysis" style from Journal */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        {/* 1. Aura Insight */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="bg-primary/5 border-primary/20 backdrop-blur-sm p-5 rounded-2xl">
             <div className="flex items-center gap-2 text-primary mb-2">
               <Sparkles className="w-4 h-4" />
@@ -193,12 +203,7 @@ export default function Page() {
 
             <AnimatePresence>
               {isLogging && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                   <div className="mt-4 p-6 bg-muted/30 border border-border rounded-2xl space-y-8">
                     <div>
                       <p className="text-[10px] font-bold uppercase text-muted-foreground mb-4 tracking-widest text-center">Flow Intensity</p>
@@ -212,10 +217,7 @@ export default function Page() {
                           <button
                             key={flow.id}
                             onClick={() => setSelectedFlow(flow.id)}
-                            className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all gap-2 ${selectedFlow === flow.id
-                              ? "border-rose-500 bg-rose-50 text-rose-600 shadow-sm"
-                              : "border-border bg-card hover:border-primary/30"
-                              }`}
+                            className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all gap-2 ${selectedFlow === flow.id ? "border-rose-500 bg-rose-50 text-rose-600 shadow-sm" : "border-border bg-card hover:border-primary/30"}`}
                           >
                             {flow.icon}
                             <span className="text-[10px] font-bold uppercase">{flow.label}</span>
@@ -223,15 +225,9 @@ export default function Page() {
                         ))}
                       </div>
                     </div>
-
-                    <Button 
-                      className="w-full h-12 rounded-full font-bold bg-slate-900 text-white shadow-lg shadow-slate-900/20" 
-                      onClick={handleSave} 
-                      disabled={isSaved || !selectedFlow}
-                    >
+                    <Button className="w-full h-12 rounded-full font-bold bg-slate-900 text-white shadow-lg shadow-slate-900/20" onClick={handleSave} disabled={isSaved || !selectedFlow}>
                       {isSaved ? <Check className="w-5 h-5 animate-in zoom-in" /> : "Save Today's Flow"}
                     </Button>
-                    
                     {isActivePeriod && (
                       <Button
                         variant="ghost"
@@ -244,11 +240,7 @@ export default function Page() {
                             await loadData();
                             setIsLogging(false);
                             setSelectedFlow(null);
-                          } catch (err) {
-                            console.error("End period failed", err);
-                          } finally {
-                            setIsSaved(false);
-                          }
+                          } catch (err) { console.error(err); } finally { setIsSaved(false); }
                         }}
                       >
                         End Active Cycle
@@ -260,7 +252,8 @@ export default function Page() {
             </AnimatePresence>
           </div>
         </Card>
-{/* 3. Week at a Glance */}
+
+        {/* 3. Week View */}
         <Card className="p-6 rounded-3xl border-border shadow-sm bg-card">
           <div className="flex items-center gap-2 mb-6 text-muted-foreground">
             <Calendar className="w-4 h-4" />
@@ -269,93 +262,124 @@ export default function Page() {
           <div className="flex justify-between md:justify-center gap-2 md:gap-6">
             {weekView.map((d, i) => (
               <div key={i} className="flex flex-col items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                  {d.day}
-                </span>
-                <div
-                  className={`w-10 h-14 rounded-2xl flex items-center justify-center text-sm font-bold transition-all border
-                  ${d.current ? 'ring-2 ring-rose-500 ring-offset-2 ring-offset-background scale-110 shadow-md' : ''}
-                  ${
-                    !d.flow
-                      ? 'bg-muted/30 text-muted-foreground border-transparent'
-                      : d.flow === 'spotting'
-                      ? 'bg-pink-100 text-pink-500 border-pink-200'
-                      : d.flow === 'light'
-                      ? 'bg-rose-100 text-rose-500 border-rose-200'
-                      : d.flow === 'medium'
-                      ? 'bg-rose-400 text-white border-rose-500'
-                      : 'bg-rose-600 text-white border-rose-700'
-                  }`}
-                >
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">{d.day}</span>
+                <div className={`w-10 h-14 rounded-2xl flex items-center justify-center text-sm font-bold transition-all border ${d.current ? 'ring-2 ring-rose-500 ring-offset-2 scale-110 shadow-md' : ''} ${!d.flow ? 'bg-muted/30 border-transparent' : d.flow === 'spotting' ? 'bg-pink-100 text-pink-500 border-pink-200' : 'bg-rose-400 text-white border-rose-500'}`}>
                   {d.date}
                 </div>
               </div>
             ))}
           </div>
         </Card>
-       {/* 4. Prediction - Swapped Layout with Enlarged Components */}
-<Card className="p-8 rounded-3xl overflow-hidden bg-card border-border shadow-sm">
-  <div className="flex items-center gap-2 text-muted-foreground mb-8">
-    <Info className="w-4 h-4" />
-    <h3 className="text-sm font-bold uppercase tracking-widest">Prediction</h3>
-  </div>
 
-  <div className="flex flex-row items-center gap-10">
-    {/* Left Side: Large Predicted Date (Enlarged) */}
-    <div className="flex flex-col items-center justify-center bg-rose-50 border border-rose-100 rounded-[3rem] px-12 py-10 shadow-inner transition-transform hover:scale-105 duration-300">
-      <span className="text-sm font-bold text-rose-400 uppercase tracking-[0.2em] mb-2">Next</span>
-      <span className={`${fraunces.className} text-xl font-black text-rose-600 whitespace-nowrap`}>
-        {prediction?.nextExpectedDate
-          ? new Date(prediction.nextExpectedDate).toLocaleDateString("en-US", { day: "numeric", month: "short" })
-          : "Mar 19"}
-      </span>
-    </div>
-
-    {/* Right Side: Stacked Stats (Slightly Bigger) */}
-    <div className="flex flex-col gap-4 flex-1">
-      <div className="p-5 bg-muted/40 rounded-2xl border border-border/50 flex flex-col justify-center min-h-[80px]">
-        <span className="text-[10px] font-bold uppercase text-muted-foreground block mb-1 tracking-wider">Avg Cycle</span>
-        <p className="text-lg font-bold text-slate-900">28 days</p>
-      </div>
-      <div className="p-5 bg-muted/40 rounded-2xl border border-border/50 flex flex-col justify-center min-h-[80px]">
-        <span className="text-[10px] font-bold uppercase text-muted-foreground block mb-1 tracking-wider">Avg Duration</span>
-        <p className="text-lg font-bold text-slate-900">5 days</p>
-      </div>
-    </div>
-  </div>
-</Card>
-
-        {/* 5. Cycle History - Styled like the "Folders" from Journal dashboard */}
-        <div className="space-y-4">
-          <h2 className={`${fraunces.className} text-xl font-bold flex items-center gap-2 px-2`}>
-            <BookOpen className="w-5 h-5 text-muted-foreground" />
-            Recent Cycles
-          </h2>
-          
-          <Card className="p-8 text-center border-dashed border-2 rounded-3xl bg-transparent border-border/50">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6 text-rose-200" />
+        {/* 4. Prediction */}
+        <Card className="p-8 rounded-3xl overflow-hidden bg-card border-border shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground mb-8">
+            <Info className="w-4 h-4" />
+            <h3 className="text-sm font-bold uppercase tracking-widest">Prediction</h3>
+          </div>
+          <div className="flex flex-row items-center gap-10">
+            <div className="flex flex-col items-center justify-center bg-rose-50 border border-rose-100 rounded-[3rem] px-12 py-10 shadow-inner">
+              <span className="text-sm font-bold text-rose-400 uppercase tracking-[0.2em] mb-2">Next</span>
+              <span className={`${fraunces.className} text-3xl font-black text-rose-600`}>
+                {prediction?.nextExpectedDate ? new Date(prediction.nextExpectedDate).toLocaleDateString("en-US", { day: "numeric", month: "short" }) : "Mar 19"}
+              </span>
+            </div>
+            <div className="flex flex-col gap-4 flex-1">
+              <div className="p-5 bg-muted/40 rounded-2xl border border-border/50 min-h-[80px]">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground block tracking-wider">Avg Cycle</span>
+                <p className="text-lg font-bold text-slate-900">28 days</p>
               </div>
-              <div className="text-sm text-muted-foreground max-w-[250px] leading-relaxed font-medium">
-                {history.length === 0 ? (
-                  <span>No cycles logged yet. Tap Log Today to begin your journey.</span>
-                ) : (
-                  <div className="space-y-2">
-                    {history.slice(0, 3).map((p, i) => (
-                      <div key={i} className="flex justify-between items-center bg-card p-3 rounded-xl border border-border shadow-sm">
-                        <span className="font-bold text-slate-700">{new Date(p.startDate).toLocaleDateString()}</span>
-                        <Badge variant="outline" className="text-[10px]">{p.endDate ? "Completed" : "Active"}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="p-5 bg-muted/40 rounded-2xl border border-border/50 min-h-[80px]">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground block tracking-wider">Avg Duration</span>
+                <p className="text-lg font-bold text-slate-900">5 days</p>
               </div>
             </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
 
-      </div>
+{/* 5. Cycle History - Final UI Revamp */}
+<div className="space-y-6 pt-10 pb-20 max-w-2xl mx-auto">
+  <h2 className={`${fraunces.className} text-xl font-bold flex items-center gap-2 px-4`}>
+    <BookOpen className="w-5 h-5 text-muted-foreground" />
+    Recent Cycles
+  </h2>
+
+  {/* Main Wrapper Card */}
+  <Card className="bg-white border-border shadow-sm p-6 md:p-10 rounded-[2.5rem] overflow-hidden">
+    <div className="space-y-12">
+      {history.length === 0 ? (
+        <div className="p-12 text-center border-dashed border-2 rounded-3xl border-border/50">
+          <p className="text-sm text-muted-foreground font-medium">No cycles logged yet.</p>
+        </div>
+      ) : (
+        /* Group by Year */
+        Object.entries(
+          history.reduce((acc: any, p) => {
+            const year = new Date(p.startDate).getFullYear();
+            if (!acc[year]) acc[year] = [];
+            acc[year].push(p);
+            return acc;
+          }, {})
+        ).sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+         .map(([year, cycles]: [string, any]) => (
+          <div key={year} className="space-y-10">
+            
+            {/* YEAR BADGE: Soft Round Reddish Component */}
+            <div className="flex justify-start">
+              <div className="bg-[#fdf2f4] text-[#d6336c] px-6 py-2 rounded-2xl font-black text-xl tracking-tight border border-[#f8d7da]/30">
+                {year}
+              </div>
+            </div>
+
+            <div className="space-y-10">
+              {cycles.map((p: any, i: number) => (
+                <div key={i} className="space-y-6">
+                  <div className="flex items-end justify-between px-2">
+                    
+                    {/* LEFT: Month Section */}
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5 mb-2 text-muted-foreground">
+                        <History className="w-3.5 h-3.5" />
+                        <span className="text-[8px] font-bold uppercase tracking-[0.15em]">Month</span>
+                      </div>
+                      <span className={`${fraunces.className} text-5xl font-black text-[#2d3436] leading-none`}>
+                        {new Date(p.startDate).toLocaleString('default', { month: 'short' }).toUpperCase()}
+                      </span>
+                    </div>
+
+                    {/* RIGHT: Completion Section */}
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5 mb-2 text-muted-foreground">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]">Completion</span>
+                        <Flag className="w-3.5 h-3.5" />
+                      </div>
+                      <div className={`${fraunces.className} text-3xl font-black text-[#2d3436] flex items-start`}>
+                        {p.endDate ? (
+                          <>
+                            {new Date(p.endDate).getDate()}
+                            <span className="text-sm ml-0.5 mt-1 font-bold">
+                              {getOrdinal(new Date(p.endDate).getDate())}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-rose-500 text-lg animate-pulse">Ongoing</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Subtle Separator matching screenshot style */}
+                  <Separator className="bg-rose-100/30 h-[1px] w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
+  </Card>
+</div>
+        </div> 
+      </div>
   )
 }
