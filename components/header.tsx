@@ -39,6 +39,9 @@ function Header() {
                             <span className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">Vishuddhi</span>
                         </div>
                     </Link>
+                    <Link href="/dashboard/period">
+  <Button variant="ghost">Period Tracker</Button>
+</Link>
                     <div className="flex items-center gap-4">
                         <nav className="hidden md:flex items-center space-x-1" >
                             {navItems.map((item) => {
