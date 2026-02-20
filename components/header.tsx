@@ -1,105 +1,113 @@
 "use client"
 import { Fraunces } from "next/font/google";
+const fraunces = Fraunces({ subsets: ["latin"] });
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-});
 import { useEffect, useState } from "react"
-import { AudioWaveform, X, Menu, MessageCircle, LogOut } from "lucide-react"
+import { AudioWaveform, X, Menu, LogOut } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { SignInButton } from "./auth/sign-in-button"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useSession } from "@/lib/contexts/session-context"
+import { motion } from "framer-motion";
 
 function Header() {
-    const { isAuthenticated,logout, user } = useSession()
-    const navItems = [{ href: "/features", label: "Features" }, { href: "/about", label: "Vishuddhi" }]
+    const { isAuthenticated, logout } = useSession()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 10)
-        }
+    // Navigation configuration
+    const navLinks = [
+        { href: "/dashboard/period", label: "Period Tracker" },
+        { href: "/dashboard/journal", label: "Journal" },
+        { href: "/dashboard/resources", label: "Resources" }
+    ]
 
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 10)
         window.addEventListener("scroll", handleScroll)
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
     return (
-        <div
-            className={`fixed top-0 z-50 w-full transition-all duration-300
-      ${scrolled
-                    ? "bg-background/80 backdrop-blur-md shadow-md border-b border-primary/10"
-                    : "bg-background/60 backdrop-blur-sm"
-                }`}
-        >
-            <header className="relative  mx-auto px-4 ">
-                <div className="flex h-16 items-center justify-between" >
-                    <Link href="/" className="flex items-center gap-2 space-x-2 transition-opacity hover:opacity-80">
+        <div className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+            scrolled ? "bg-background/80 backdrop-blur-md shadow-md border-b border-primary/10" : "bg-background/60 backdrop-blur-sm"
+        }`}>
+            <header className="relative mx-auto px-6">
+                <div className="flex h-16 items-center justify-between">
+                    
+                    {/* LEFT: Logo & Brand (Redirects to Dashboard) */}
+                    <Link href="/dashboard" className="flex items-center gap-2 transition-opacity hover:opacity-80">
                         <AudioWaveform className="h-7 w-7 text-primary animate-pulse-gentle" />
-                        <div className="flex flex-col">
-                            <span className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">Vishuddhi</span>
-                        </div>
+                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
+                            Vishuddhi
+                        </span>
                     </Link>
-                    <Link href="/dashboard/period">
-  <Button variant="ghost">Period Tracker</Button>
-  </Link>
-{/* In your Navbar mapping or list */}
-<Link 
-  href="/dashboard/journal" 
-  className={`${fraunces.className} text-sm font-medium transition-colors hover:text-primary`}
->
-  Journal
-</Link>
-                    <div className="flex items-center gap-4">
-                        <nav className="hidden md:flex items-center space-x-1" >
-                            {navItems.map((item) => {
-                                return (<Link key={item.href} href={item.href} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group">{item.label}<span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"></span></Link>)
-                            })}
+
+                    {/* RIGHT: Main Navigation Components */}
+                    <div className="flex items-center gap-6">
+                        <nav className="hidden md:flex items-center space-x-2">
+                            {navLinks.map((link) => (
+                                <Link 
+                                    key={link.href} 
+                                    href={link.href}
+                                    className={`${fraunces.className} px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all hover:bg-muted/50 rounded-lg`}
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
                         </nav>
-                        <div className="flex items-center gap-3">
+
+                        {/* UTILITIES: Toggle & Auth */}
+                        <div className="flex items-center gap-3 pl-4 border-l border-border/50">
                             <ThemeToggle />
                             {isAuthenticated ? (
-                <>
-                  <Button
-                    asChild
-                    className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary"
-                  >
-                    <Link href="/dashboard">
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      Start Chat
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={logout}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </Button>
-                </>
-              ) : (
-                <SignInButton />
-              )}
-
-                            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">{isMenuOpen ? (<X className="h-5 w-5" />) : (<Menu className="h-5 w-5" />)}</Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={logout}
+                                    className="text-muted-foreground hover:text-destructive transition-colors"
+                                >
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    <span className="hidden sm:inline">Sign out</span>
+                                </Button>
+                            ) : (
+                                <SignInButton />
+                            )}
+                            
+                            {/* MOBILE MENU TRIGGER */}
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                                className="md:hidden"
+                            >
+                                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                            </Button>
                         </div>
                     </div>
                 </div>
+
+                {/* MOBILE NAVIGATION DRAWER */}
                 {isMenuOpen && (
-                    <div className="md:hidden bg-background/80 backdrop-blur-md border-t border-primary/10">
-                        <nav className="flex flex-col p-4 space-y-2">
-                            {navItems.map((item) => {
-                                return (<Link key={item.href} href={item.href} className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>{item.label}</Link>)
-                            })}
-                        </nav>
-                    </div>
+                    <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="md:hidden bg-background border-t border-border p-4 space-y-2 shadow-xl"
+                    >
+                        {navLinks.map((link) => (
+                            <Link 
+                                key={link.href} 
+                                href={link.href} 
+                                onClick={() => setIsMenuOpen(false)}
+                                className="block px-4 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                    </motion.div>
                 )}
             </header>
-
         </div>
     )
 }
