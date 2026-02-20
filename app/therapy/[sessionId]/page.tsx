@@ -1,11 +1,24 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { use, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Send, Bot, User, Loader2, Sparkles } from "lucide-react"
+import { Send, Bot, User, Loader2, Sparkles, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import ReactMarkdown from "react-markdown"
+import {useParams, useRouter } from "next/navigation"
+import {
+  createChatSession,
+  sendChatMessage,
+  getChatHistory,
+  ChatMessage,
+  getAllChatSessions,
+  ChatSession,
+} from "@/lib/api/chat"
+import {formatDistanceToNow} from "date-fns"
+import {ScrollArea} from "@/components/ui/scroll-area"
+
+
 
 const glowAnimation = {
   initial: { opacity: 0.5, scale: 1 },
@@ -21,14 +34,103 @@ const glowAnimation = {
 }
 
 export default function TherapyPage() {
+  const params = useParams()
   const [message, setMessage] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const messageEndRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<any[]>([])
   const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isChatPaused] = useState(false)
+  const [sessions, setSessions] = useState<any[]>([])
+   const [sessionId, setSessionId] = useState<string | null>(
+    params.sessionId as string
+  );
+
+  const handleNewSession = async()=>{
+    try{
+      setIsLoading(true);
+      const newSessionId = await createChatSession()
+
+      const newSession: ChatSession = {
+        sessionId: newSessionId,
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      setSessions((prev) => [newSession, ...prev]);
+      setSessionId(newSessionId);
+      setMessages([]);
+
+      window.history.pushState({},"",`/therapy/${newSessionId}`)
+      setIsLoading(false)
+    } catch(error){
+      console.error("Failed to create new session:",error)
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
+    const initChat = async () => {
+      try {
+        setIsLoading(true);
+        if (!sessionId || sessionId === "new") {
+          console.log("Creating new chat session...");
+          const newSessionId = await createChatSession();
+          console.log("New session created:", newSessionId);
+          setSessionId(newSessionId);
+          window.history.pushState({}, "", `/therapy/${newSessionId}`);
+        } else {
+          console.log("Loading existing chat session:", sessionId);
+          try {
+            const history = await getChatHistory(sessionId);
+            console.log("Loaded chat history:", history);
+            if (Array.isArray(history)) {
+              const formattedHistory = history.map((msg) => ({
+                ...msg,
+                timestamp: new Date(msg.timestamp),
+              }));
+              console.log("Formatted history:", formattedHistory);
+              setMessages(formattedHistory);
+            } else {
+              console.error("History is not an array:", history);
+              setMessages([]);
+            }
+          } catch (historyError) {
+            console.error("Error loading chat history:", historyError);
+            setMessages([]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to initialize chat:", error);
+        setMessages([
+          {
+            role: "assistant",
+            content:
+              "I apologize, but I'm having trouble loading the chat session. Please try refreshing the page.",
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initChat();
+  }, [sessionId]);
+
+  useEffect(() => {
+    const loadSessions = async() => {
+      try {
+        const allSessions = await getAllChatSessions()
+        setSessions(allSessions)
+      } catch (error) {
+        console.error("Failed to load sessions:", error)
+      }
+    }
+    loadSessions()
+  },[messages])
+
+    useEffect(() => {
     setMounted(true)
   }, [])
 
@@ -37,20 +139,197 @@ export default function TherapyPage() {
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-      }, 100)
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }
+  };
 
   useEffect(() => {
     if (!isTyping) {
-      scrollToBottom()
+      scrollToBottom();
     }
-  }, [messages, isTyping])
+  }, [messages, isTyping]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const currentMessage = message.trim();
+
+    if (!currentMessage || isTyping || isChatPaused || !sessionId) {
+      console.log("Submission blocked:", {
+        noMessage: !currentMessage,
+        isTyping,
+        isChatPaused,
+        noSessionId: !sessionId,
+      });
+      return;
+    }
+
+    setMessage("");
+    setIsTyping(true);
+
+     try {
+      // Add user message
+      const userMessage: ChatMessage = {
+        role: "user",
+        content: currentMessage,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      const response = await sendChatMessage(sessionId, currentMessage)
+
+        const aiResponse =
+        typeof response === "string" ? JSON.parse(response) : response;
+      console.log("Parsed AI response:", aiResponse);
+
+      const assistantMessage: ChatMessage = {
+        role: "assistant",
+        content:
+          aiResponse.response ||
+          aiResponse.message ||
+          "I'm here to support you. Could you tell me more about what's on your mind?",
+        timestamp: new Date(),
+        metadata: {
+          analysis: aiResponse.analysis || {
+            emotionalState: "neutral",
+            riskLevel: 0,
+            themes: [],
+            recommendedApproach: "supportive",
+            progressIndicators: [],
+          },
+          technique: aiResponse.metadata?.technique || "supportive",
+          goal: aiResponse.metadata?.currentGoal || "Provide support",
+          progress: aiResponse.metadata?.progress || {
+            emotionalState: "neutral",
+            riskLevel: 0,
+          },
+        },
+      }; 
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setIsTyping(false);
+      scrollToBottom();
+     } catch (error) {
+      console.error("Error in chat:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+          timestamp: new Date(),
+        },
+      ]);
+      setIsTyping(false);
+    }
+  };
+
+   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+    const handleSessionSelect = async (selectedSessionId: string) => {
+    if (selectedSessionId === sessionId) return;
+
+    try {
+      setIsLoading(true);
+      const history = await getChatHistory(selectedSessionId);
+      if (Array.isArray(history)) {
+        const formattedHistory = history.map((msg) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        setMessages(formattedHistory);
+        setSessionId(selectedSessionId);
+        window.history.pushState({}, "", `/therapy/${selectedSessionId}`);
+      }
+    } catch (error) {
+      console.error("Failed to load session:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="relative max-w-7xl mx-auto px-4">
       <div className="flex h-[calc(100vh-4rem)] mt-20 gap-6">
+
+<div className="w-80 flex flex-col border-r bg-muted/30">
+  <div className="p-4 border-b">
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-lg font-semibold">Chat Sessions</h2>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleNewSession}
+        className="hover:bg-primary/10"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <MessageSquare className="w-5 h-5" />
+        )}
+        New Session
+      </Button>
+    </div>
+  </div>
+
+  <ScrollArea className="flex-1 p-4">
+    <div className="space-y-4">
+      {sessions.map((session) => (
+        <div
+          key={session.sessionId}
+          className={cn(
+            "p-3 rounded-lg text-sm cursor-pointer hover:bg-primary/5 transition-colors",
+            session.sessionId === sessionId
+              ? "bg-primary/10 text-primary"
+              : "bg-secondary/10"
+          )}
+          onClick={() => handleSessionSelect(session.sessionId)}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <MessageSquare className="w-4 h-4" />
+            <span className="font-medium">
+              {session.messages[0]?.content.slice(0, 30) || "New Chat"}
+            </span>
+          </div>
+          <p className="line-clamp-2 text-muted-foreground">
+            {session.messages[session.messages.length - 1]?.content ||
+              "No messages yet"}
+          </p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-muted-foreground">
+              {session.messages.length} messages
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {(() => {
+                try {
+                  const date = new Date(session.updatedAt);
+                  if (isNaN(date.getTime())) {
+                    return "Just now";
+                  }
+                  return formatDistanceToNow(date, {
+                    addSuffix: true,
+                  });
+                } catch (error) {
+                  return "Just now";
+                }
+              })()}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </ScrollArea>
+</div>
+
         <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-background rounded-lg border">
 
           {/* Header */}
