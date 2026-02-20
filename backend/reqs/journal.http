@@ -11,5 +11,13 @@ GET http://localhost:3001/api/journals
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
 
 ### Get a specific journal by ID
-GET http://localhost:3001/api/journals/:id
+GET http://localhost:3001/api/journals/699896d2594f48d6c69c5079
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+
+### Start journal-focused conversation
+POST http://localhost:3001/api/journals/699896d2594f48d6c69c5079/continue
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM
+
+### Should FAIL (no insight journal)
+POST http://localhost:3001/api/journals/6998998673f2b389b1f3e780/continue
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk3MzQzZTdhNjkyNzI5MjI2ZDIyMDEiLCJpYXQiOjE3NzE1ODA3NzYsImV4cCI6MTc3MTY2NzE3Nn0.lSRdWQ0z3OW9Yw5it8ctAwKZO5knbxDhHgtUDUgu8kM

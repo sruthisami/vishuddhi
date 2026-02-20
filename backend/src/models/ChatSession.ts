@@ -17,6 +17,7 @@ export interface IChatMessage {
       riskLevel?: number;
     };
   };
+
 }
 
 export interface IChatSession extends Document {
@@ -26,6 +27,8 @@ export interface IChatSession extends Document {
   startTime: Date;
   status: "active" | "completed" | "archived";
   messages: IChatMessage[];
+  journalId?: Types.ObjectId;
+  mode?: "normal" | "journal_focus";
 }
 
 const chatMessageSchema = new Schema<IChatMessage>({
@@ -53,6 +56,13 @@ const chatSessionSchema = new Schema<IChatSession>(
       default: "active",
     },
     messages: [chatMessageSchema],
+   journalId: { type: Schema.Types.ObjectId, ref: "Journal" },
+
+mode: {
+  type: String,
+  enum: ["normal", "journal_focus"],
+  default: "normal",
+},
   },
   {
     timestamps: true,
