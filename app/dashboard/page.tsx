@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { AnxietyGames } from "@/components/games/anxiety-games"
 import { MoodForm } from "@/components/mood/mood-form"
-import {ActivityLogger} from "@/components/activities/activity-logger"
+import { ActivityLogger } from "@/components/activities/activity-logger"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/contexts/session-context"
 
@@ -68,7 +68,7 @@ export default function Dashboard() {
     const hour = currentTime.getHours()
     const greeting =
         hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
-    
+
     // // Load activities on mount
     // useEffect(() => {
     //     loadActivities();
@@ -78,12 +78,12 @@ export default function Dashboard() {
     const handleStartTherapy = () => {
         router.push("/therapy/new");
     };
-    
-    const handleMoodSubmit = async(data:{moodScore: number }) => {
+
+    const handleMoodSubmit = async (data: { moodScore: number }) => {
         setIsSavingMood(true);
         try {
             setShowMoodModal(false);
-        } catch(error){
+        } catch (error) {
             console.error("Error saving mood:", error);
         } finally {
             setIsSavingMood(false);
@@ -141,7 +141,7 @@ export default function Dashboard() {
                                         "hover:from-primary hover:to-primary/90",
                                         "transition-all duration-200 hover:shadow-md"
                                     )}
-                                onClick={handleStartTherapy}
+                                    onClick={handleStartTherapy}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
@@ -166,7 +166,7 @@ export default function Dashboard() {
                                             "justify-center items-center text-center",
                                             "transition-all duration-200 group-hover:translate-y-[-2px]"
                                         )}
-                                    onClick={() => setShowMoodModal(true)}
+                                        onClick={() => setShowMoodModal(true)}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center mb-2">
                                             <Heart className="w-5 h-5 text-muted-foreground" />
@@ -186,7 +186,7 @@ export default function Dashboard() {
                                             "justify-center items-center text-center",
                                             "transition-all duration-200 group-hover:translate-y-[-2px]"
                                         )}
-                                    onClick={handleAICheckIn}
+                                        onClick={handleAICheckIn}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
                                             <BrainCircuit className="w-5 h-5 text-muted-foreground" />
@@ -203,19 +203,19 @@ export default function Dashboard() {
                             </div>
                         </CardContent>
                     </Card>
-                    </div>
-                    {/* Today's Overview Card */}
-                    <Card className="border-primary/10">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle>Today's Overview</CardTitle>
-                                    <CardDescription>
-                                        Your wellness metrics for{" "}
-                                        {format(new Date(), "MMMM d, yyyy")}
-                                    </CardDescription>
-                                </div>
-                                {/* <Button
+                </div>
+                {/* Today's Overview Card */}
+                <Card className="border-primary/10">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Today's Overview</CardTitle>
+                                <CardDescription>
+                                    Your wellness metrics for{" "}
+                                    {format(new Date(), "MMMM d, yyyy")}
+                                </CardDescription>
+                            </div>
+                            {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={fetchDailyStats}
@@ -223,42 +223,42 @@ export default function Dashboard() {
                   >
                     <Loader2 className={cn("h-4 w-4", "animate-spin")} />
                   </Button> */}
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 gap-3">
-                                {wellnessStats.map((stat) => (
-                                    <div
-                                        key={stat.title}
-                                        className={cn(
-                                            "p-4 rounded-lg transition-all duration-200 hover:scale-[1.02]",
-                                            stat.bgColor
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <stat.icon className={cn("w-5 h-5", stat.color)} />
-                                            <p className="text-sm font-medium">{stat.title}</p>
-                                        </div>
-                                        <p className="text-2xl font-bold mt-2">{stat.value}</p>
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                            {stat.description}
-                                        </p>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-2 gap-3">
+                            {wellnessStats.map((stat) => (
+                                <div
+                                    key={stat.title}
+                                    className={cn(
+                                        "p-4 rounded-lg transition-all duration-200 hover:scale-[1.02]",
+                                        stat.bgColor
+                                    )}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <stat.icon className={cn("w-5 h-5", stat.color)} />
+                                        <p className="text-sm font-medium">{stat.title}</p>
                                     </div>
-                                ))}
-                            </div>
-                            {/* <div className="mt-4 text-xs text-muted-foreground text-right">
+                                    <p className="text-2xl font-bold mt-2">{stat.value}</p>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        {stat.description}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                        {/* <div className="mt-4 text-xs text-muted-foreground text-right">
                   Last updated: {format(dailyStats.lastUpdated, "h:mm a")}
                 </div> */}
-                        </CardContent>
-                    </Card>
+                    </CardContent>
+                </Card>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Left side - Spans 2 columns */}
-                        <div className="lg:col-span-3 space-y-6">
-                            <AnxietyGames 
-                            
-                            />
-                        </div> 
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left side - Spans 2 columns */}
+                    <div className="lg:col-span-3 space-y-6">
+                        <AnxietyGames
+
+                        />
+                    </div>
                 </div>
             </Container>
 
@@ -270,14 +270,16 @@ export default function Dashboard() {
                             Move the slider to track your current mood
                         </DialogDescription>
                     </DialogHeader>
-                   <MoodForm onSubmit={handleMoodSubmit} isLoading={isSavingMood} />
+                    <MoodForm onSubmit={handleMoodSubmit} isLoading={isSavingMood} />
                 </DialogContent>
             </Dialog>
-            <ActivityLogger 
+            <ActivityLogger
                 open={showActivityLogger}
-                onOpenChange={setShowActivityLogger} onActivityLogged={function (): void {
-                    throw new Error("Function not implemented.")
-                } }            />
+                onOpenChange={setShowActivityLogger}
+                onActivityLogged={() => {
+                    console.log("Activity logged");
+                }}
+            />
         </div>
     )
 }

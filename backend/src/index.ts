@@ -37,7 +37,7 @@ app.use("/auth", authRoutes);
 app.use("/chat", chatRouter);
 app.use("/api/mood", moodRouter);
 app.use("/api/activity", activityRouter);
-app.use("/api/period", periodRouter); // 🌸 PERIOD ROUTES
+app.use("/api/period", periodRouter); 
 
 // ================= INNGEST =================
 app.use(

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// import { motion } from "framer-motion";
-// import { Plus, X, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { useToast } from "@/components/ui/use-toast";
-// import { useSession } from "@/lib/contexts/session-context";
-// import { logActivity } from "@/lib/api/activity";
 
 const activityTypes = [
   { id: "meditation", name: "Meditation" },
@@ -33,43 +28,65 @@ const activityTypes = [
   { id: "therapy", name: "Therapy Session" },
 ];
 
-interface ActivityLoggerProps {
+interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onActivityLogged: () => void;
 }
 
-export function ActivityLogger({
-  open,
-  onOpenChange,
-  onActivityLogged,
-}: ActivityLoggerProps) {
+export function ActivityLogger({ open, onOpenChange, onActivityLogged }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState("");
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
-//   const { toast } = useToast();
-//   const { user, isAuthenticated, loading } = useSession();
 
-  const handleSubmit =  (e: React.FormEvent) => {
-   setTimeout(()=>{
-    console.log({
-        type,
-        name,
-        duration,
-        description,
-    })
-    setType("")
-    setName("")
-    setDuration("")
-    setDescription("")
-    setIsLoading(false)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    alert("Activity logged (mock)!")
-    onOpenChange(false)
-   }, 1000)
-};
+    if (!type || !name) {
+      
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("/api/activity", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type,
+          name,
+          duration: duration ? Number(duration) : undefined,
+          description,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // reset form
+      setType("");
+      setName("");
+      setDuration("");
+      setDescription("");
+
+      onActivityLogged();
+      onOpenChange(false);
+
+    } catch (err: any) {
+      console.error(err);
+
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,69 +96,51 @@ export function ActivityLogger({
           <DialogDescription>Record your wellness activity</DialogDescription>
         </DialogHeader>
 
-        <form action="" onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
             <Label>Activity Type</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select activity type" />
+                <SelectValue placeholder="Select activity" />
               </SelectTrigger>
               <SelectContent>
-                {activityTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
-                    {type.name}
+                {activityTypes.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div>
             <Label>Name</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Morning Meditation, Evening Walk, etc."
-            />
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
-          <div className="space-y-2">
-            <Label>Duration (minutes)</Label>
+          <div>
+            <Label>Duration (min)</Label>
             <Input
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              placeholder="15"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Description (optional)</Label>
+          <div>
+            <Label>Description</Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="How did it go?"
             />
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost"
-            //   onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled>
-                Save Activity
-              {/* {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : loading ? (
-                "Loading..."
-              ) : (
-                "Save Activity"
-              )} */}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Activity"}
             </Button>
           </div>
         </form>
