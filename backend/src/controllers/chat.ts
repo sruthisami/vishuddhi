@@ -7,6 +7,7 @@ import { inngest } from "../inngest/index";
 import { User } from "../models/User";
 import { InngestEvent } from "../types/inngest";
 import { Types } from "mongoose";
+import Journal from "../models/Journal";
 
 // ===============================
 // Gemini Init
@@ -107,6 +108,17 @@ export const sendMessage = async (req: Request, res: Response) => {
     const userId = new Types.ObjectId(req.user.id);
 
     const session = await ChatSession.findOne({ sessionId });
+    let journalContext = "";
+let journalInsight = "";
+
+if (session.mode === "journal_focus" && session.journalId) {
+  const journal = await Journal.findById(session.journalId).lean();
+
+  if (journal) {
+    journalContext = journal.text;
+    journalInsight = journal.aiInsights?.insight || "";
+  }
+}
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
@@ -144,9 +156,20 @@ export const sendMessage = async (req: Request, res: Response) => {
     // ===============================
     // STEP 1: ANALYSIS
     // ===============================
-    const analysisPrompt = `Analyze this therapy message and return ONLY valid JSON.
+    const analysisPrompt = `
+Analyze this therapy message and return ONLY valid JSON.
 
-Message: ${message}
+${journalContext ? `
+PRIMARY CONTEXT (IMPORTANT):
+User journal:
+${journalContext}
+
+Insight:
+${journalInsight}
+` : ""}
+
+Current user message:
+${message}
 
 {
   "emotionalState": "string",
@@ -166,12 +189,35 @@ Message: ${message}
     // ===============================
     // STEP 2: RESPONSE
     // ===============================
-    const responsePrompt = `You are an empathetic therapist.
+    const responsePrompt = `
+You are an empathetic therapist.
 
-User message: ${message}
-Analysis: ${JSON.stringify(analysis)}
+${journalContext ? `
+PRIMARY CONTEXT (MOST IMPORTANT):
+The user is reflecting on a journal entry.
 
-Respond with warmth, validation, and gentle guidance.`;
+Journal:
+${journalContext}
+
+AI Insight:
+${journalInsight}
+
+Guidelines:
+- Keep the conversation anchored to this journal
+- Help the user explore this specific experience
+- Do NOT drift into generic advice
+- Use reflective, grounded language
+- Move slowly and gently
+` : ""}
+
+User message:
+${message}
+
+Analysis:
+${JSON.stringify(analysis)}
+
+Respond with warmth, validation, and gentle guidance.
+`;
 
     const responseResult = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
