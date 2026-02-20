@@ -4,6 +4,7 @@ import {
   getChatSession,
   sendMessage,
   getChatHistory,
+  getAllChatSessions,
 } from "../controllers/chat";
 import { auth } from "../middleware/auth";
 
@@ -14,6 +15,9 @@ router.use(auth);
 
 // Create a new chat session
 router.post("/sessions", createChatSession);
+
+// Get all sessions
+router.get("/sessions", getAllChatSessions);
 
 // Get a specific chat session
 router.get("/sessions/:sessionId", getChatSession);

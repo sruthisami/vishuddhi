@@ -42,17 +42,22 @@ const chatMessageSchema = new Schema<IChatMessage>({
   },
 });
 
-const chatSessionSchema = new Schema<IChatSession>({
-  sessionId: { type: String, required: true, unique: true },
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  startTime: { type: Date, default: Date.now },
-  status: {
-    type: String,
-    enum: ["active", "completed", "archived"],
-    default: "active",
+const chatSessionSchema = new Schema<IChatSession>(
+  {
+    sessionId: { type: String, required: true, unique: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    startTime: { type: Date, default: Date.now },
+    status: {
+      type: String,
+      enum: ["active", "completed", "archived"],
+      default: "active",
+    },
+    messages: [chatMessageSchema],
   },
-  messages: [chatMessageSchema],
-});
+  {
+    timestamps: true,
+  }
+);
 
 
 export const ChatSession =
