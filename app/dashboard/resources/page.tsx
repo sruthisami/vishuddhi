@@ -6,11 +6,17 @@ import { motion } from "framer-motion"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Brain, Sparkles, Users } from "lucide-react"
+import { Brain, Sparkles, Stethoscope, Users } from "lucide-react"
+import { Button } from '@/components/ui/button'
+// 1. IMPORT useRouter from next/navigation
+import { useRouter } from 'next/navigation'
 
 const fraunces = Fraunces({ subsets: ["latin"] })
 
 export default function ResourcesPage() {
+  // 2. INITIALIZE the router hook
+  const router = useRouter()
+
   return (
     <div className="min-h-screen bg-background pt-24 pb-12 px-6">
       <div className="max-w-6xl mx-auto space-y-12">
@@ -34,7 +40,6 @@ export default function ResourcesPage() {
             transition={{ duration: 0.5 }}
           >
             <Card className="h-full border-primary/10 bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col p-0">
-              {/* Image is now the very first element inside the card, no margin */}
               <div className="relative h-52 w-full bg-rose-200/5 flex items-center justify-center overflow-hidden">
                 <Users className="w-20 h-20 text-rose-500/20 transition-transform group-hover:scale-110 duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
@@ -73,7 +78,6 @@ export default function ResourcesPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Card className="h-full border-border bg-card overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col p-0">
-              {/* Image is flush with the top of the card */}
               <div className="relative h-52 w-full bg-[#ffc0cb]/20 flex items-center justify-center overflow-hidden">
                 <Brain className="w-16 h-16 text-[#ffc0cb] opacity-50 absolute z-0" />
                 <Image 
@@ -101,9 +105,43 @@ export default function ResourcesPage() {
                   "Try to pose for yourself this task: not to think of a polar bear, and you will see that the cursed thing will come to mind every minute."
                 </p>
                 <p className="text-foreground/70 leading-relaxed">
-                  The Pink Elephant Theory explains ironic process theory—where deliberate efforts to suppress a thought actually make it more persistent. This loop is a key focus for our AI-driven insights during journal auditing.
+                  The Pink Elephant Theory explains ironic process theory—where deliberate efforts to suppress a thought actually make it more persistent.
                 </p>
               </div>
+            </Card>
+          </motion.div>
+
+          {/* CARD 3: MEDICAL DIRECTORY */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="h-full border-border bg-card overflow-hidden group hover:shadow-xl transition-all duration-300">
+              <div className="relative h-48 w-full bg-primary/5 flex items-center justify-center">
+                <Stethoscope className="w-12 h-12 text-primary/20" />
+                <Badge className="absolute bottom-4 left-4 bg-primary text-primary-foreground border-none">
+                  Directory
+                </Badge>
+              </div>
+              <CardHeader>
+                <CardTitle className={`${fraunces.className} text-2xl font-bold`}>
+                  Medical Directory
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-6">
+                  Access a curated list of 50+ healthcare professionals near VNRVJIET.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="w-full rounded-xl font-bold"
+                  // 3. USE router.push for navigation
+                  onClick={() => router.push('/dashboard/resources/doctors')}
+                >
+                  View All Doctors
+                </Button>
+              </CardContent>
             </Card>
           </motion.div>
 
