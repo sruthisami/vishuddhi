@@ -5,6 +5,11 @@ import { ChevronDown, ChevronUp, Plus, MessageSquareText, Sparkles, Clock, X, Lo
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
+import {
+  createJournal,
+  getJournals,
+  continueJournal,
+} from "@/lib/api/journal";
 
 interface Journal {
   _id: string;
@@ -31,55 +36,61 @@ export default function JournalPage() {
   });
 
   // Fetch journals
-  const fetchJournals = async () => {
-    try {
-      const response = await fetch('/api/journal');
-      const data = await response.json();
-      setJournals(data.slice(0, 10));
-    } catch (err) {
-      console.error("Failed to fetch journals", err);
-    }
-  };
+ const fetchJournals = async () => {
+  try {
+    const data = await getJournals();
+    setJournals(data.slice(0, 10));
+  } catch (err) {
+    console.error("Failed to fetch journals", err);
+  }
+};
 
   useEffect(() => {
     fetchJournals();
   }, []);
 
   // Save new entry
-  const handleSaveEntry = async () => {
-    if (!newEntryText.trim()) return;
+ const handleSaveEntry = async () => {
+  if (!newEntryText.trim()) return;
 
-    setIsSaving(true);
+  setIsSaving(true);
 
-    try {
-      const res = await fetch('/api/journal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: newEntryText }),
-      });
+  try {
+    const res = await createJournal({ text: newEntryText });
 
-      const createdJournal = await res.json();
+    // optimistic entry
+    const newJournal: Journal = {
+      _id: res.journalId,
+      text: newEntryText,
+      createdAt: new Date().toISOString(),
+      aiInsights: { insight: "" },
+    };
 
-      if (res.ok) {
-        // 🔥 Instantly prepend new journal
-        setJournals(prev => [createdJournal, ...prev]);
-        setExpandedId(createdJournal._id); // auto expand new entry
-        setNewEntryText("");
-        setIsModalOpen(false);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    setJournals(prev => [newJournal, ...prev]);
+    setExpandedId(newJournal._id);
+
+    setNewEntryText("");
+    setIsModalOpen(false);
+
+    // 🔥 silently refresh after AI finishes
+    setTimeout(fetchJournals, 2500);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   // Start journal-focused chat
   const handleStartConversation = async (journalId: string) => {
-    const res = await fetch(`/api/journal/${journalId}/continue`, { method: 'POST' });
-    const { sessionId } = await res.json();
+  try {
+    const { sessionId } = await continueJournal(journalId);
     router.push(`/therapy/${sessionId}`);
-  };
+  } catch (err: any) {
+    alert(err.message); // insight missing guard
+  }
+};
 
   return (
     <div className="max-w-4xl mx-auto p-6 pt-24 space-y-8 min-h-screen">
@@ -188,27 +199,30 @@ export default function JournalPage() {
               </p>
 
               {/* AI Insight Box inside the folder */}
-              <div className="relative z-10 bg-white/60 dark:bg-black/40 backdrop-blur-sm border border-black/5 dark:border-white/5 rounded-xl p-5 mt-4">
-                <div className="flex items-center gap-2 text-primary dark:text-[#d4a373] mb-3">
-                  <Sparkles size={16} />
-                  <span className="text-xs font-bold uppercase tracking-tight">AI Insight</span>
-                </div>
-                
-                <p className="text-sm italic text-neutral-700 dark:text-neutral-300">
-                  {entry.aiInsights?.insight || "Processing your entry for insights..."}
-                </p>
+              {entry.aiInsights?.insight && (
+  <div className="relative z-10 bg-white/60 dark:bg-black/40 backdrop-blur-sm border border-black/5 dark:border-white/5 rounded-xl p-5 mt-4">
+    
+    <div className="flex items-center gap-2 text-primary dark:text-[#d4a373] mb-3">
+      <Sparkles size={16} />
+      <span className="text-xs font-bold uppercase tracking-tight">
+        AI Insight
+      </span>
+    </div>
 
-                {entry.aiInsights?.insight && (
-                  <Button
-                    onClick={() => handleStartConversation(entry._id)}
-                    variant="outline"
-                    className="mt-5 w-full md:w-auto gap-2 border-primary/20 hover:bg-primary/10"
-                  >
-                    <MessageSquareText size={16} />
-                    Talk about this
-                  </Button>
-                )}
-              </div>
+    <p className="text-sm italic text-neutral-700 dark:text-neutral-300">
+      {entry.aiInsights.insight}
+    </p>
+
+    <Button
+      onClick={() => handleStartConversation(entry._id)}
+      variant="outline"
+      className="mt-5 w-full md:w-auto gap-2 border-primary/20 hover:bg-primary/10"
+    >
+      <MessageSquareText size={16} />
+      Talk about this
+    </Button>
+  </div>
+)}
             </div>
           </motion.div>
         )}
