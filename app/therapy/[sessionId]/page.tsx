@@ -1,12 +1,12 @@
 "use client"
 
-import { use, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Send, Bot, User, Loader2, Sparkles, MessageSquare } from "lucide-react"
+import { Send, Bot, User, Loader2, Sparkles, MessageSquare, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import ReactMarkdown from "react-markdown"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import {
   createChatSession,
   sendChatMessage,
@@ -17,8 +17,6 @@ import {
 } from "@/lib/api/chat"
 import { formatDistanceToNow } from "date-fns"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
-
 
 const glowAnimation = {
   initial: { opacity: 0.5, scale: 1 },
@@ -37,21 +35,18 @@ export default function TherapyPage() {
   const params = useParams()
   const [message, setMessage] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const messageEndRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<any[]>([])
   const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isChatPaused] = useState(false)
   const [sessions, setSessions] = useState<any[]>([])
-  const [sessionId, setSessionId] = useState<string | null>(
-    params.sessionId as string
-  );
+  const [sessionId, setSessionId] = useState<string | null>(params.sessionId as string);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const handleNewSession = async () => {
     try {
       setIsLoading(true);
       const newSessionId = await createChatSession()
-
       const newSession: ChatSession = {
         sessionId: newSessionId,
         messages: [],
@@ -61,56 +56,28 @@ export default function TherapyPage() {
       setSessions((prev) => [newSession, ...prev]);
       setSessionId(newSessionId);
       setMessages([]);
-
       window.history.pushState({}, "", `/therapy/${newSessionId}`)
-      setIsLoading(false)
     } catch (error) {
       console.error("Failed to create new session:", error)
+    } finally {
       setIsLoading(false)
     }
-  }
+  };
 
   useEffect(() => {
     const initChat = async () => {
       try {
         setIsLoading(true);
         if (!sessionId || sessionId === "new") {
-          console.log("Creating new chat session...");
-          const newSessionId = await createChatSession();
-          console.log("New session created:", newSessionId);
-          setSessionId(newSessionId);
-          window.history.pushState({}, "", `/therapy/${newSessionId}`);
+          const newId = await createChatSession();
+          setSessionId(newId);
+          window.history.pushState({}, "", `/therapy/${newId}`);
         } else {
-          console.log("Loading existing chat session:", sessionId);
-          try {
-            const history = await getChatHistory(sessionId);
-            console.log("Loaded chat history:", history);
-            if (Array.isArray(history)) {
-              const formattedHistory = history.map((msg) => ({
-                ...msg,
-                timestamp: new Date(msg.timestamp),
-              }));
-              console.log("Formatted history:", formattedHistory);
-              setMessages(formattedHistory);
-            } else {
-              console.error("History is not an array:", history);
-              setMessages([]);
-            }
-          } catch (historyError) {
-            console.error("Error loading chat history:", historyError);
-            setMessages([]);
-          }
+          const history = await getChatHistory(sessionId);
+          setMessages(Array.isArray(history) ? history.map(msg => ({ ...msg, timestamp: new Date(msg.timestamp) })) : []);
         }
       } catch (error) {
-        console.error("Failed to initialize chat:", error);
-        setMessages([
-          {
-            role: "assistant",
-            content:
-              "I apologize, but I'm having trouble loading the chat session. Please try refreshing the page.",
-            timestamp: new Date(),
-          },
-        ]);
+        setMessages([{ role: "assistant", content: "Trouble loading session.", timestamp: new Date() }]);
       } finally {
         setIsLoading(false);
       }
@@ -123,396 +90,157 @@ export default function TherapyPage() {
       try {
         const allSessions = await getAllChatSessions()
         setSessions(allSessions)
-      } catch (error) {
-        console.error("Failed to load sessions:", error)
-      }
+      } catch (error) { console.error(error); }
     }
     loadSessions()
   }, [messages])
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { setMounted(true) }, [])
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  useEffect(() => {
-    if (!isTyping) {
-      scrollToBottom();
-    }
-  }, [messages, isTyping]);
+  useEffect(() => { scrollToBottom(); }, [messages, isTyping]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentMessage = message.trim();
-
-    if (!currentMessage || isTyping || isChatPaused || !sessionId) {
-      console.log("Submission blocked:", {
-        noMessage: !currentMessage,
-        isTyping,
-        isChatPaused,
-        noSessionId: !sessionId,
-      });
-      return;
-    }
-
+    if (!message.trim() || isTyping || !sessionId) return;
+    const current = message.trim();
     setMessage("");
     setIsTyping(true);
-
     try {
-      // Add user message
-      const userMessage: ChatMessage = {
-        role: "user",
-        content: currentMessage,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      const response = await sendChatMessage(sessionId, currentMessage)
-
-      const aiResponse =
-        typeof response === "string" ? JSON.parse(response) : response;
-      console.log("Parsed AI response:", aiResponse);
-
-      const assistantMessage: ChatMessage = {
-        role: "assistant",
-        content:
-          aiResponse.response ||
-          aiResponse.message ||
-          "I'm here to support you. Could you tell me more about what's on your mind?",
-        timestamp: new Date(),
-        metadata: {
-          analysis: aiResponse.analysis || {
-            emotionalState: "neutral",
-            riskLevel: 0,
-            themes: [],
-            recommendedApproach: "supportive",
-            progressIndicators: [],
-          },
-          technique: aiResponse.metadata?.technique || "supportive",
-          goal: aiResponse.metadata?.currentGoal || "Provide support",
-          progress: aiResponse.metadata?.progress || {
-            emotionalState: "neutral",
-            riskLevel: 0,
-          },
-        },
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsTyping(false);
-      scrollToBottom();
+      setMessages(prev => [...prev, { role: "user", content: current, timestamp: new Date() }]);
+      const response = await sendChatMessage(sessionId, current);
+      const aiResponse = typeof response === "string" ? JSON.parse(response) : response;
+      setMessages(prev => [...prev, { role: "assistant", content: aiResponse.response || "I'm here for you.", timestamp: new Date() }]);
     } catch (error) {
-      console.error("Error in chat:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
-          timestamp: new Date(),
-        },
-      ]);
-      setIsTyping(false);
-    }
+      console.error(error);
+    } finally { setIsTyping(false); }
   };
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  const handleSessionSelect = async (selectedSessionId: string) => {
-    if (selectedSessionId === sessionId) return;
-
-    try {
-      setIsLoading(true);
-      const history = await getChatHistory(selectedSessionId);
-      if (Array.isArray(history)) {
-        const formattedHistory = history.map((msg) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp),
-        }));
-        setMessages(formattedHistory);
-        setSessionId(selectedSessionId);
-        window.history.pushState({}, "", `/therapy/${selectedSessionId}`);
-      }
-    } catch (error) {
-      console.error("Failed to load session:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="relative max-w-7xl mx-auto px-4">
-      <div className="flex h-[calc(100vh-4rem)] mt-20 gap-6">
+    <div className="relative max-w-7xl mx-auto px-4 h-screen flex flex-col overflow-hidden">
+      {/* Fixed height container to force internal scrolling */}
+      <div className="flex h-[calc(100vh-7rem)] mt-24 mb-4 gap-6 overflow-hidden">
 
-        <div className="w-80 flex flex-col border-r bg-muted/30">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Chat Sessions</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNewSession}
-                className="hover:bg-primary/10"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <MessageSquare className="w-5 h-5" />
-                )}
-                New Session
-              </Button>
-            </div>
+        {/* 1. SCROLLABLE SIDEBAR */}
+        <div className="w-80 flex flex-col border rounded-3xl bg-muted/10 overflow-hidden shrink-0">
+          <div className="p-5 border-b flex items-center justify-between bg-card/50">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">History</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNewSession}
+              className="flex items-center gap-2 hover:bg-primary/5 px-2 py-1 h-auto"
+            >
+              <span className="text-[10px] font-bold uppercase text-muted-foreground/50">New Session</span>
+              <Plus className="w-3.5 h-3.5 text-muted-foreground/40" />
+            </Button>
           </div>
 
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
+          {/* This is the scroll area for chat sessions */}
+          <ScrollArea className="flex-1 w-full h-full">
+            <div className="p-3 space-y-2">
               {sessions.map((session) => (
-                <div
+                <button
                   key={session.sessionId}
+                  onClick={() => setSessionId(session.sessionId)}
                   className={cn(
-                    "p-3 rounded-lg text-sm cursor-pointer hover:bg-primary/5 transition-colors",
+                    "w-full text-left p-4 rounded-2xl transition-all border",
                     session.sessionId === sessionId
-                      ? "bg-primary/10 text-primary"
-                      : "bg-secondary/10"
+                      ? "bg-white dark:bg-neutral-900 border-border shadow-sm ring-1 ring-primary/10"
+                      : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50"
                   )}
-                  onClick={() => handleSessionSelect(session.sessionId)}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="font-medium">
-                      {session.messages[0]?.content.slice(0, 30) || "New Chat"}
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <MessageSquare className={cn("w-3.5 h-3.5", session.sessionId === sessionId ? "text-primary" : "text-muted-foreground/30")} />
+                    <span className={cn("text-xs font-bold truncate", session.sessionId === sessionId ? "text-foreground" : "")}>
+                      {session.messages[0]?.content.slice(0, 22) || "New Discussion"}
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-muted-foreground">
-                    {session.messages[session.messages.length - 1]?.content ||
-                      "No messages yet"}
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-muted-foreground">
-                      {session.messages.length} messages
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {(() => {
-                        try {
-                          const date = new Date(session.updatedAt);
-                          if (isNaN(date.getTime())) {
-                            return "Just now";
-                          }
-                          return formatDistanceToNow(date, {
-                            addSuffix: true,
-                          });
-                        } catch (error) {
-                          return "Just now";
-                        }
-                      })()}
-                    </span>
+                  <div className="flex justify-between text-[10px] opacity-60 font-semibold">
+                    <span>{session.messages.length} msgs</span>
+                    <span>{session.updatedAt ? formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true }) : "Recent"}</span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </ScrollArea>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-background rounded-lg border">
-
+        {/* 2. CHATBOT AREA */}
+        <div className="flex-1 flex flex-col border rounded-[2.5rem] bg-card overflow-hidden shadow-sm">
           {/* Header */}
-          <div className="flex items-center gap-2 p-4 border-b">
-            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-              <Bot className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-semibold">
-                Vishuddhi - Your AI Therapist
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {messages.length} messages
-              </p>
-            </div>
+          <div className="p-4 border-b bg-muted/20 flex items-center gap-3">
+             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+               <Bot className="w-5 h-5 text-primary" />
+             </div>
+             <div>
+               <h3 className="text-sm font-bold">Vishuddhi - AI Therapist</h3>
+               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Live Session</p>
+             </div>
           </div>
 
-          {/* Chat Body */}
-          {messages.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center p-4">
-              <div className="max-w-2xl w-full space-y-8">
-                <div className="text-center space-y-4">
-                  <div className="relative inline-flex flex-col items-center">
-                    <motion.div
-                      className="absolute inset-0 bg-primary/20 blur-2xl rounded-full"
-                      initial="initial"
-                      animate="animate"
-                      variants={glowAnimation as any}
-                    />
-
-                    <div className="relative flex items-center gap-2 text-2xl font-semibold">
-                      <div className="relative">
-                        <Sparkles className="w-6 h-6 text-primary" />
-                        <motion.div
-                          className="absolute inset-0 text-primary"
-                          initial="initial"
-                          animate="animate"
-                          variants={glowAnimation as any}
-                        >
-                          <Sparkles className="w-6 h-6" />
-                        </motion.div>
-                      </div>
-                      <span className="bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
-                        Vishuddhi
-                      </span>
-                    </div>
-
-                    <p className="text-muted-foreground mt-2">
-                      How may I assist you today?
-                    </p>
-                  </div>
+          {/* Independent Chat ScrollArea */}
+          <ScrollArea className="flex-1 h-full">
+            {messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center p-10 min-h-[400px]">
+                <div className="relative text-center">
+                  <motion.div className="absolute inset-0 bg-primary/10 blur-3xl" animate="animate" variants={glowAnimation as any} />
+                  <Sparkles className="w-10 h-10 text-primary mx-auto mb-4" />
+                  <h4 className="text-xl font-bold mb-2">How may I assist you today?</h4>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 overflow-y-auto scroll-smooth">
-              <div className="max-w-3xl mx-auto">
-                <AnimatePresence initial={false}>
-                  {messages.map((msg) => (
-                    <motion.div
-                      key={msg.timestamp.toISOString()}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className={cn(
-                        "px-6 py-8",
-                        msg.role === "assistant"
-                          ? "bg-muted/30"
-                          : "bg-background"
-                      )}
-                    >
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 shrink-0 mt-1">
-                          {msg.role === "assistant" ? (
-                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20">
-                              <Bot className="w-5 h-5" />
-                            </div>
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                              <User className="w-5 h-5" />
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex-1 space-y-2 overflow-hidden min-h-[2rem]">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium text-sm">
-                              {msg.role === "assistant"
-                                ? "AI Therapist"
-                                : "You"}
-                            </p>
-                          </div>
-
-                          <div className="prose prose-sm dark:prose-invert leading-relaxed">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
+            ) : (
+              <div className="p-6 space-y-8">
+                {messages.map((msg, i) => (
+                  <div key={i} className={cn("flex gap-4 max-w-3xl", msg.role === "assistant" ? "" : "ml-auto flex-row-reverse")}>
+                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", msg.role === "assistant" ? "bg-primary/10 text-primary border border-primary/20" : "bg-neutral-100 text-neutral-600")}>
+                      {msg.role === "assistant" ? <Bot size={16} /> : <User size={16} />}
+                    </div>
+                    <div className={cn("p-4 rounded-2xl text-sm leading-relaxed shadow-sm", msg.role === "assistant" ? "bg-muted/30 border-border border" : "bg-primary text-white")}>
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  </div>
+                ))}
                 {isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="px-6 py-8 flex gap-4 bg-muted/30"
-                  >
-                    <div className="w-8 h-8 shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      </div>
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      <p className="font-medium text-sm">AI Therapist</p>
-                      <p className="text-sm text-muted-foreground">
-                        Typing...
-                      </p>
-                    </div>
-                  </motion.div>
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center animate-pulse"><Loader2 size={14} className="animate-spin text-primary" /></div>
+                    <div className="p-4 rounded-2xl bg-muted/30 italic text-xs text-muted-foreground tracking-wide">Vishuddhi is reflecting...</div>
+                  </div>
                 )}
-
                 <div ref={messagesEndRef} />
               </div>
-            </div>
-          )}
+            )}
+          </ScrollArea>
 
-          {/* Input Area */}
-          <div className="border-t bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 p-4">
-            <form
-              onSubmit={handleSubmit}
-              className="max-w-3xl mx-auto flex gap-4 items-end relative"
-            >
-              <div className="flex-1 relative group">
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder={
-                    isChatPaused
-                      ? "Complete the activity to continue..."
-                      : "Ask me anything..."
-                  }
-                  className={cn(
-                    "w-full resize-none rounded-2xl border bg-background",
-                    "p-3 pr-12 min-h-[48px] max-h-[200px]",
-                    "focus:outline-none focus:ring-2 focus:ring-primary/50",
-                    "transition-all duration-200",
-                    "placeholder:text-muted-foreground/70",
-                    (isTyping || isChatPaused) &&
-                    "opacity-50 cursor-not-allowed"
-                  )}
-                  rows={1}
-                  disabled={isTyping || isChatPaused}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                    }
-                  }}
-                />
-
-                <Button
-                  type="submit"
-                  size="icon"
-                  className={cn(
-                    "absolute right-1.5 bottom-3.5 h-[36px] w-[36px]",
-                    "rounded-xl transition-all duration-200",
-                    "bg-primary hover:bg-primary/90",
-                    "shadow-sm shadow-primary/20",
-                    (isTyping || isChatPaused || !message.trim()) &&
-                    "opacity-50 cursor-not-allowed",
-                    "group-hover:scale-105 group-focus-within:scale-105"
-                  )}
-                  disabled={
-                    isTyping || isChatPaused || !message.trim()
-                  }
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
+          {/* Input Footer */}
+          <div className="p-6 border-t bg-muted/5">
+            <form onSubmit={handleSubmit} className="flex gap-3 max-w-3xl mx-auto items-end">
+               <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Share your thoughts..."
+                className="flex-1 bg-white dark:bg-neutral-900 border rounded-2xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none max-h-32 min-h-[56px] transition-all"
+                rows={1}
+                onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); }}}
+               />
+               <Button type="submit" size="icon" className="rounded-xl h-14 w-14 shadow-lg shadow-primary/20" disabled={!message.trim() || isTyping}>
+                 <Send className="w-5 h-5" />
+               </Button>
             </form>
           </div>
-
         </div>
       </div>
     </div>
